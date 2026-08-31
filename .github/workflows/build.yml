@@ -25,7 +25,6 @@ jobs:
         run: |
           git clone -b istoreos-22.03 --depth 1 https://github.com/istoreos/istoreos.git openwrt
           cd openwrt
-          echo "src-cpy feeds.conf 使用源码默认"
       - name: 更新 feeds（执行 diy-part1）
         run: |
           cd openwrt
@@ -51,11 +50,12 @@ jobs:
           echo "========================="
           echo "编译完成，固件列表如下："
           find bin/targets -name "*.bin" -o -name "*.img" | sort
-      - name: 上传固件到 Release
-        uses: softprops/action-gh-release@v1
+      - name: 上传固件到 Artifacts
+        uses: actions/upload-artifact@v4
         if: ${{ success() && steps.build.outcome == 'success' }}
         with:
-          files: |
+          name: iStoreOS-JDCloud-RE-SP-01B
+          path: |
             openwrt/bin/targets/**/*.bin
             openwrt/bin/targets/**/*.img
             
