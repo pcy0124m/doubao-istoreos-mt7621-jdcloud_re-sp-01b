@@ -1,13 +1,8 @@
 #!/bin/bash
-# ===== 添加 Argon 主题 feed =====
-echo "src-git argon https://github.com/jerrykuku/luci-theme-argon.git" >> feeds.conf.default
-
-# ===== 添加 OpenClash feed =====
-echo "src-git openclash https://github.com/vernesong/OpenClash.git" >> feeds.conf.default
-
-# ===== 添加 PassWall feed =====
-echo "src-git passwall https://github.com/xiaorouji/openwrt-passwall.git" >> feeds.conf.default
-echo "src-git passwall_packages https://github.com/xiaorouji/openwrt-passwall-packages.git" >> feeds.conf.default
-
-# ===== 添加 iStore 软件中心增强 feed（可选，iStoreOS 已内置）=====
-echo "src-git istore_packages https://github.com/linkease/istore-packages.git" >> feeds.conf.default
+# ===== 精简 feed 配置 =====
+# iStoreOS 官方源码(istoreos-22.03)已内置全部所需 feed：
+#   store  -> iStore 软件中心
+#   third  -> Argon 主题 / filetransfer 等第三方包
+#   luci / packages / routing / telephony -> 官方基础 feed
+# 无需在此追加任何第三方 feed，避免与官方源冲突、防止拉取超时。
+# 大插件(OpenClash/PassWall/qBittorrent 等)刷机后到 iStore 软件中心按需安装。
