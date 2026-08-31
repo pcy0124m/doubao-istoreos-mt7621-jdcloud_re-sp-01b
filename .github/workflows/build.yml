@@ -1,17 +1,16 @@
 name: Build iStoreOS for JDCloud RE-SP-01B
-
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
       - name: 检出仓库
         uses: actions/checkout@main
-
       - name: 初始化环境
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -22,13 +21,11 @@ jobs:
             rsync subversion unzip zlib1g-dev flex bison libssl-dev quilt wget
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
-
       - name: 克隆 iStoreOS 源码
         run: |
           git clone -b istoreos-22.03 --depth 1 https://github.com/istoreos/istoreos.git openwrt
           cd openwrt
           echo "src-cpy feeds.conf 使用源码默认"
-
       - name: 更新 feeds（执行 diy-part1）
         run: |
           cd openwrt
@@ -36,31 +33,29 @@ jobs:
           ../diy-part1.sh
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-
       - name: 应用定制（执行 diy-part2）
         run: |
           cd openwrt
           chmod +x ../diy-part2.sh
           ../diy-part2.sh
-
       - name: 导入设备配置
         run: |
           cd openwrt
           cp ../config/jdcloud.config .config
           make defconfig
-
       - name: 开始编译
+        id: build
         run: |
           cd openwrt
           make -j$(nproc) || make -j1 V=s
           echo "========================="
           echo "编译完成，固件列表如下："
           find bin/targets -name "*.bin" -o -name "*.img" | sort
-
       - name: 上传固件到 Release
         uses: softprops/action-gh-release@v1
-        if: ${{ always() && steps.build  }}
+        if: ${{ success() && steps.build.outcome == 'success' }}
         with:
           files: |
             openwrt/bin/targets/**/*.bin
             openwrt/bin/targets/**/*.img
+            
