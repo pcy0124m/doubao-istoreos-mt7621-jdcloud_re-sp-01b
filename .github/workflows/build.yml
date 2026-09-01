@@ -23,7 +23,7 @@ jobs:
           sudo -E apt-get clean
       - name: 克隆 iStoreOS 源码
         run: |
-          git clone -b istoreos-22.03 --depth 1 https://github.com/istoreos/istoreos.git openwrt
+          git clone -b istoreos-25.12 --depth 1 https://github.com/istoreos/istoreos.git openwrt
           cd openwrt
       - name: 更新 feeds（执行 diy-part1）
         run: |
