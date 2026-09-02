@@ -1,4 +1,4 @@
-name: Build iStoreOS for JDCloud RE-SP-01B
+name: Build ImmortalWrt for JDCloud RE-SP-01B
 on:
   push:
     branches: [ main ]
@@ -21,9 +21,9 @@ jobs:
             rsync subversion unzip zlib1g-dev flex bison libssl-dev quilt wget
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
-      - name: 克隆 iStoreOS 源码
+      - name: 克隆 ImmortalWrt 源码
         run: |
-          git clone -b istoreos-25.12 --depth 1 https://github.com/istoreos/istoreos.git openwrt
+          git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/immortalwrt.git openwrt
           cd openwrt
       - name: 更新 feeds（执行 diy-part1）
         run: |
@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ success() && steps.build.outcome == 'success' }}
         with:
-          name: iStoreOS-JDCloud-RE-SP-01B
+          name: ImmortalWrt-JDCloud-RE-SP-01B
           path: |
             openwrt/bin/targets/**/*.bin
             openwrt/bin/targets/**/*.img
@@ -63,13 +63,13 @@ jobs:
         if: ${{ success() && steps.build.outcome == 'success' }}
         with:
           tag_name: v${{ github.run_number }}
-          name: iStoreOS JDCloud RE-SP-01B 固件 v${{ github.run_number }}
+          name: ImmortalWrt JDCloud RE-SP-01B 固件 v${{ github.run_number }}
           body: |
-            自动云编译固件（iStoreOS 25.12 / MT7621 / JDCloud RE-SP-01B）
+            自动云编译固件（ImmortalWrt 23.05 / MT7621 / JDCloud RE-SP-01B）
             - 默认IP: 192.168.12.1
             - 默认密码: 空
             - 已集成 OpenAppFilter 应用过滤
-            - 主题: Argon / 时区: 上海
+            - iStore 商店 / 主题 Argon / 时区 上海
             下载 .bin 文件后，在 Breed 或原系统内刷机即可。
           files: |
             openwrt/bin/targets/**/*.bin
