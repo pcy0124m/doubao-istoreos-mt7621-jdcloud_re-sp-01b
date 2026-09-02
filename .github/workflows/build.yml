@@ -58,4 +58,22 @@ jobs:
           path: |
             openwrt/bin/targets/**/*.bin
             openwrt/bin/targets/**/*.img
-            
+      - name: 发布固件到 Release
+        uses: softprops/action-gh-release@v2
+        if: ${{ success() && steps.build.outcome == 'success' }}
+        with:
+          tag_name: v${{ github.run_number }}
+          name: iStoreOS JDCloud RE-SP-01B 固件 v${{ github.run_number }}
+          body: |
+            自动云编译固件（iStoreOS 25.12 / MT7621 / JDCloud RE-SP-01B）
+            - 默认IP: 192.168.12.1
+            - 默认密码: 空
+            - 已集成 OpenAppFilter 应用过滤
+            - 主题: Argon / 时区: 上海
+            下载 .bin 文件后，在 Breed 或原系统内刷机即可。
+          files: |
+            openwrt/bin/targets/**/*.bin
+            openwrt/bin/targets/**/*.img
+          draft: false
+          prerelease: false
+          
