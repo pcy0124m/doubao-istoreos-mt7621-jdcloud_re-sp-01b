@@ -1,0 +1,84 @@
+name: Build ImmortalWrt 24.10 for JDCloud RE-SP-01B
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/build-2410.yml'
+      - 'diy-part1-2410.sh'
+      - 'diy-part2.sh'
+      - 'config/jdcloud-2410.config'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@main
+      - name: 初始化环境
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt-get -y update
+          sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext \
+            git libncurses5-dev libz-dev patch python3 python3-pip python3-setuptools \
+            rsync subversion unzip zlib1g-dev flex bison libssl-dev quilt wget
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+      - name: 克隆 ImmortalWrt 24.10 源码
+        run: |
+          git clone -b openwrt-24.10 --depth 1 https://github.com/immortalwrt/immortalwrt.git openwrt
+          cd openwrt
+      - name: 更新 feeds（执行 diy-part1-2410）
+        run: |
+          cd openwrt
+          chmod +x ../diy-part1-2410.sh
+          ../diy-part1-2410.sh
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+      - name: 应用定制（执行 diy-part2）
+        run: |
+          cd openwrt
+          chmod +x ../diy-part2.sh
+          ../diy-part2.sh
+      - name: 导入设备配置
+        run: |
+          cd openwrt
+          cp ../config/jdcloud-2410.config .config
+          make defconfig
+      - name: 开始编译
+        id: build
+        run: |
+          cd openwrt
+          make -j$(nproc) || make -j1 V=s
+          echo "========================="
+          echo "编译完成，固件列表如下："
+          find bin/targets -name "*.bin" -o -name "*.img" | sort
+      - name: 上传固件到 Artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ success() && steps.build.outcome == 'success' }}
+        with:
+          name: ImmortalWrt2410-JDCloud-RE-SP-01B
+          path: |
+            openwrt/bin/targets/**/*.bin
+            openwrt/bin/targets/**/*.img
+      - name: 发布固件到 Release
+        uses: softprops/action-gh-release@v2
+        if: ${{ success() && steps.build.outcome == 'success' }}
+        with:
+          tag_name: v2410-${{ github.run_number }}
+          name: ImmortalWrt 24.10 JDCloud RE-SP-01B 固件 v${{ github.run_number }}
+          body: |
+            自动云编译固件 (ImmortalWrt 24.10 / MT7621 / JDCloud RE-SP-01B)
+            - 默认IP: 192.168.12.1
+            - 默认密码: 空
+            - 已集成 OpenAppFilter 应用过滤 (v6.1.7)
+            - iStore 商店 / 主题 Argon / 时区 上海 / 中文界面
+            下载 squashfs-sysupgrade.bin 在 Breed 或原系统内刷机固化。
+          files: |
+            openwrt/bin/targets/**/*.bin
+            openwrt/bin/targets/**/*.img
+          draft: false
+          prerelease: false
+
